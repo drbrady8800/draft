@@ -5,7 +5,7 @@ interface FootballFieldProps {
 }
   
 const FootballField: React.FC<FootballFieldProps> = ({ children }) => {
-  const [isLandscape, setIsLandscape] = useState<boolean>(false);
+  const [isLandscape, setIsLandscape] = useState<boolean>(true);
 
   // Update orientation based on screen dimensions
   useEffect(() => {
@@ -213,24 +213,22 @@ const FootballField: React.FC<FootballFieldProps> = ({ children }) => {
   };
 
   return (
-    <div className='w-full h-full flex justify-center items-center bg-gray-800 overflow-hidden'>
+    <div
+      className='w-full h-full absolute top-0 left-0 bg-green-800 overflow-hidden'>
+      {/* Render field elements */}
+      {renderEndZones()}
+      {renderYardLines()}
+      {renderHashMarks()}
+      
+      {/* Midfield logo */}
       <div
-        className='w-full h-full relative bg-green-800 overflow-hidden'>
-        {/* Render field elements */}
-        {renderEndZones()}
-        {renderYardLines()}
-        {renderHashMarks()}
-        
-        {/* Midfield logo */}
-        <div
-          className='absolute rounded-full bg-white/10 border-2 border-white/30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex justify-center items-center text-white font-bold'
-          style={{
-            width: isLandscape ? '25vh' : '25vw',
-            height: isLandscape ? '25vh' : '25vw',
-          }}
-        >
-          {children}
-        </div>
+        className='absolute rounded-full bg-white/10 border-2 border-white/30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex justify-center items-center text-white font-bold'
+        style={{
+          width: isLandscape ? '25vh' : '25vw',
+          height: isLandscape ? '25vh' : '25vw',
+        }}
+      >
+        {children}
       </div>
     </div>
   );

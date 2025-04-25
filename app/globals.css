@@ -1,4 +1,20 @@
 @import 'tailwindcss';
+@source inline("bg-good");
+@source inline("bg-mid");
+@source inline("bg-bad");
+
+@theme {
+  --color-good: var(--color-green-500);
+  --color-mid: var(--color-yellow-500);
+  --color-bad: var(--color-red-500);
+
+  --animate-pulse-grow: pulse-grow 2s ease-in-out infinite;
+
+  @keyframes pulse-grow {
+    0%, 100% { transform: scale(1) }
+    50% { transform: scale(1.1) }
+  }
+}
 
 :root {
   --foreground-rgb: 0, 0, 0;

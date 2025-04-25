@@ -1,68 +1,117 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
-import DraftTicker from '@/components/DraftTicker';
-import DraftDrink from '@/components/DraftDrink';
-import DraftButton from '@/components/DraftButton';
+import { Button, Menu, MenuItem, Box, Typography, CircularProgress } from '@mui/material';
 import FootballField from '@/components/FootballField';
-import { randomTier } from '@/lib/constants';
-
-// Dynamically import Confetti with no SSR to avoid hydration issues
-const Confetti = dynamic(() => import('react-confetti'), { ssr: false });
+import { Draft } from '@/lib/types';
 
 export default function Home() {
-  const [currentTier, setCurrentTier] = useState<number | null>(null);
-  const [useConfetti, setUseConfetti] = useState<boolean>(false);
-  const [windowWidth, setWindowWidth] = useState<number | undefined>(undefined);
-  const [windowHeight, setWindowHeight] = useState<number | undefined>(undefined);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [loading, setLoading] = useState(true);
+  const open = Boolean(anchorEl);
 
-  // Set window dimensions after the component mounts
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setWindowWidth(window.innerWidth);
-      setWindowHeight(window.innerHeight);
-      
-      const handleResize = () => {
-        setWindowWidth(window.innerWidth);
-        setWindowHeight(window.innerHeight);
-      };
-      
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }
+    const fetchDrafts = async () => {
+      try {
+        const response = await fetch('/api/drafts');
+        if (!response.ok) throw new Error('Failed to fetch drafts');
+        const data = await response.json();
+        setDrafts(data);
+      } catch (error) {
+        console.error('Error fetching drafts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDrafts();
   }, []);
 
-  const handleDraftClick = (): void => {
-    const tier = randomTier(0);
-    setCurrentTier(tier);
-    setUseConfetti(false);
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleMenuItemClick = (path: string) => {
+    window.location.href = path;
   };
 
   return (
-    <FootballField>
-      <div className='text-center text-lg text-white p-5 min-h-full min-w-full flex flex-col items-center justify-start bg-black/30 backdrop-blur-[3px]'>
-        <div className='w-full max-w-6xl'>
-          {useConfetti && windowWidth && windowHeight && (
-            <Confetti
-              width={windowWidth}
-              height={windowHeight}
-              recycle={false}
-              numberOfPieces={500}
-            />
-          )}
+    <div className="min-h-screen min-w-screen flex flex-col items-center justify-center relative">
+      <FootballField />
+      <div className="absolute top-0 left-0 text-center text-lg text-white p-5 min-h-full min-w-full flex flex-col items-center justify-start bg-black/30 backdrop-blur-[3px]">
+        <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          <Typography variant="h2" component="h1" sx={{ fontWeight: 'bold', textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>
+            Alchy Draft
+          </Typography>
           
-          <DraftButton onClick={handleDraftClick}/>
-          <DraftTicker />
-          
-          {currentTier && (
-            <DraftDrink 
-              tier={currentTier} 
-              setUseConfetti={setUseConfetti} 
-            />
-          )}
-        </div>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              onClick={() => handleMenuItemClick('/setup')}
+              sx={{
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                color: 'black',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 1)',
+                },
+              }}
+            >
+              Setup New Draft
+            </Button>
+
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              onClick={handleClick}
+              disabled={loading}
+              sx={{
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                color: 'black',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 1)',
+                },
+              }}
+            >
+              {loading ? <CircularProgress size={24} /> : 'View Drafts'}
+            </Button>
+          </Box>
+
+          <Menu
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleClose}
+            PaperProps={{
+              sx: {
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                minWidth: '200px',
+              }
+            }}
+          >
+            {drafts.map((draft) => (
+              <MenuItem 
+                key={draft.id} 
+                onClick={() => {
+                  handleMenuItemClick(`/draft/${draft.id}`);
+                  handleClose();
+                }}
+              >
+                {draft.name} - {new Date(draft.date).toLocaleDateString()}
+              </MenuItem>
+            ))}
+            {drafts.length === 0 && !loading && (
+              <MenuItem disabled>No drafts available</MenuItem>
+            )}
+          </Menu>
+        </Box>
       </div>
-    </FootballField>
+    </div>
   );
 }
