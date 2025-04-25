@@ -6,7 +6,6 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const draftId = searchParams.get('draftId');
-    const seed = searchParams.get('seed') || '0';
 
     if (!draftId) {
       return NextResponse.json(
@@ -27,13 +26,15 @@ export async function GET(request: NextRequest) {
     `, draftId);
 
     // Get the current pick and the total number of picks
-    const currentPick = await db.get(`
-      SELECT draft_order FROM draft_picks WHERE draft_id = ? AND drafted_player_id IS NULL ORDER BY id ASC LIMIT 1
+    const currentPickResult = await db.get(`
+      SELECT draft_order FROM draft_picks WHERE draft_id = ? AND drafted_player_id IS NULL ORDER BY draft_order ASC LIMIT 1
     `, draftId);
-    const totalPicks = await db.get(`
-      SELECT COUNT(*) FROM draft_picks WHERE draft_id = ?
+    const totalPicksResult = await db.get(`
+      SELECT COUNT(*) as count FROM draft_picks WHERE draft_id = ?
     `, draftId);
 
+    const currentPick = currentPickResult?.draft_order || 0;
+    const totalPicks = totalPicksResult?.count || 0;
     // Count players by type
     const typeCounts = {
       good: availablePlayers.filter(p => p.type === 'good').length,
@@ -44,10 +45,30 @@ export async function GET(request: NextRequest) {
     // Calculate base probabilities based on draft progress
     const progress = currentPick / totalPicks;
     let probabilities = {
-      good: Math.max(0.05, 0.8 - progress * 2), // Starts at 80%, decreases to 5%
-      mid: 0.15 + Math.sin(progress * Math.PI) * 0.1, // Oscillates around 15%
-      bad: Math.min(0.8, progress * 2) // Starts at 5%, increases to 80%
+      good: Math.max(0.1, 0.8 - (progress / 3)), // Starts at 80%, decreases to 10%
+      mid: Math.exp(-Math.pow((progress - 0.5) * 2.5, 2)) * 0.6, // Bell curve centered at 50% progress
+      bad: Math.min(0.8, Math.max(0.1, progress / 3)) // Starts at 10%, increases to 80%
     };
+
+
+    // Adjust probabilities based on remaining quantities
+    // If there are very few of a type left, reduce its probability
+    const totalPlayers = typeCounts.good + typeCounts.mid + typeCounts.bad;
+    
+    if (totalPlayers > 0) {
+      // Calculate scarcity factors - lower values mean more scarcity
+      const scarcityFactors = {
+        good: typeCounts.good / totalPlayers,
+        mid: typeCounts.mid / totalPlayers,
+        bad: typeCounts.bad / totalPlayers
+      };
+      
+      // Apply scarcity factors to probabilities
+      probabilities.good *= scarcityFactors.good;
+      probabilities.mid *= scarcityFactors.mid;
+      probabilities.bad *= scarcityFactors.bad;
+    }
+
 
     // Normalize probabilities
     const totalProb = probabilities.good + probabilities.mid + probabilities.bad;
@@ -57,18 +78,13 @@ export async function GET(request: NextRequest) {
       bad: probabilities.bad / totalProb
     };
 
-    // Create a deterministic but pseudo-random value based on seed and current pick
-    let seedValue = parseInt(seed) + currentPick;
-    const getNextValue = () => {
-      const x = Math.sin(seedValue++) * 10000;
-      return x - Math.floor(x);
-    };
+    // Generate a random number between 0 and 1
+    const getNextValue = () => Math.random();
 
     // Select tier based on probabilities
     const random = getNextValue();
     let selectedTier: DraftablePlayerType;
 
-    console.log("Selected tier:", random, probabilities, typeCounts);
 
     if (random < probabilities.good && typeCounts.good > 0) {
       selectedTier = 'good';
@@ -81,11 +97,8 @@ export async function GET(request: NextRequest) {
     } else if (typeCounts.mid > 0) {
       selectedTier = 'mid';
     } else {
-      console.log("No players available");
       return NextResponse.json([]);
     }
-
-    console.log("Selected tier:", random, probabilities, typeCounts, selectedTier);
 
     // Return all players from the selected tier
     const tierPlayers = availablePlayers.filter(p => p.type === selectedTier);
@@ -98,4 +111,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}

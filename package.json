@@ -18,7 +18,8 @@
     "react-confetti": "^6.4.0",
     "react-dom": "^19.1.0",
     "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "swr": "^2.3.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.3",

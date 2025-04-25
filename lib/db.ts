@@ -162,8 +162,8 @@ export async function getDraftablePlayerById(id: number | string): Promise<Draft
 export async function createDraftablePlayer(player: DraftablePlayer): Promise<DraftablePlayer | undefined> {
   const db = await getDb();
   const result = await db.run(
-    'INSERT INTO draftable_players (name, image_url, draft_id) VALUES (?, ?, ?)',
-    [player.name, player.image_url || null, player.draft_id]
+    'INSERT INTO draftable_players (name, image_url, draft_id, type) VALUES (?, ?, ?, ?)',
+    [player.name, player.image_url || null, player.draft_id, player.type]
   );
   return result.lastID ? getDraftablePlayerById(result.lastID) : undefined;
 }
@@ -171,8 +171,8 @@ export async function createDraftablePlayer(player: DraftablePlayer): Promise<Dr
 export async function updateDraftablePlayer(id: number | string, player: DraftablePlayer): Promise<DraftablePlayer | undefined> {
   const db = await getDb();
   await db.run(
-    'UPDATE draftable_players SET name = ?, image_url = ? WHERE id = ?',
-    [player.name, player.image_url || null, id]
+    'UPDATE draftable_players SET name = ?, image_url = ?, type = ? WHERE id = ?',
+    [player.name, player.image_url || null, player.type, id]
   );
   return getDraftablePlayerById(id);
 }

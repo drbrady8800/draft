@@ -233,5 +233,5 @@ const FootballField: React.FC<FootballFieldProps> = ({ children }) => {
     </div>
   );
 };
-
 export default FootballField;
+

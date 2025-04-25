@@ -7,7 +7,13 @@ import { Person, Draft, Team, Beverage, DraftablePlayerType } from '@/lib/types'
 export default function SetupDraft() {
   const router = useRouter();
   const [draftName, setDraftName] = useState('');
-  const [draftDate, setDraftDate] = useState('');
+  const [draftDate, setDraftDate] = useState(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  });
   const [people, setPeople] = useState<Person[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedPeople, setSelectedPeople] = useState<Set<number>>(new Set());

@@ -13,10 +13,8 @@ interface DraftPicksProps {
 const DraftPicks: React.FC<DraftPicksProps> = ({ onPlayerSelected, availablePlayers, onClearSelection }) => {
   const [selectedPlayer, setSelectedPlayer] = useState<DraftablePlayer | null>(null);
 
-  const handleSelection = (e: MouseEvent<HTMLDivElement>): void => {
-    const target = e.target as HTMLDivElement;
-    const playerIndex = parseInt(target.dataset.index || '0');
-    const player = availablePlayers[playerIndex];
+  const handleSelection = (playerId: number): void => {
+    const player = availablePlayers.find(p => p.id === playerId);
 
     if (player) {
       setSelectedPlayer(player);
@@ -51,8 +49,7 @@ const DraftPicks: React.FC<DraftPicksProps> = ({ onPlayerSelected, availablePlay
             <DraftablePlayerBox 
               key={player.id}
               player={player}
-              onClick={handleSelection}
-              data-index={index}
+              onClick={() => handleSelection(player.id)}
             />
           ))
         )}

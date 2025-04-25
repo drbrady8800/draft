@@ -105,11 +105,6 @@ async function fetchAndProcessPlayers(
   draftId: number
 ) {
   const createdPlayers = [];
-  const qualityPageMap: Record<DraftablePlayerType, number> = {
-    good: 1,
-    mid: 2,
-    bad: 10
-  };
 
   // Process each quality category
   for (const quality of ['good', 'mid', 'bad'] as DraftablePlayerType[]) {
@@ -118,8 +113,7 @@ async function fetchAndProcessPlayers(
     if (beverages.length === 0) continue;
 
     // Fetch players from ESPN API based on quality
-    const pageNumber = qualityPageMap[quality];
-    const espnAthletes = await fetchESPNAthletes(pageNumber);
+    const espnAthletes = await fetchESPNAthletes(quality);
 
     // Randomly assign beverages to players
     const shuffledBeverages = [...beverages].sort(() => Math.random() - 0.5);
@@ -158,7 +152,7 @@ async function fetchAndProcessPlayers(
   return createdPlayers;
 }
 
-async function fetchESPNAthletes(pageNumber: number): Promise<ESPNAthlete[]> {
+async function fetchESPNAthletes(quality: DraftablePlayerType): Promise<ESPNAthlete[]> {
   try {
     const response = await fetch(
       `https://site.web.api.espn.com/apis/site/v2/sports/football/nfl/draft`,
@@ -170,7 +164,20 @@ async function fetchESPNAthletes(pageNumber: number): Promise<ESPNAthlete[]> {
     }
     
     const data = await response.json();
-    return data?.picks.map((pick: any) => pick.athlete) || [];
+    const allAthletes = data?.picks.filter((pick: any) => pick.athlete).map((pick: any) => pick.athlete) || [];
+    const totalAthletes = allAthletes.length;
+    const thirdSize = Math.floor(totalAthletes / 3);
+    
+    switch (quality) {
+      case 'good':
+        return allAthletes.slice(0, thirdSize);
+      case 'mid':
+        return allAthletes.slice(thirdSize, thirdSize * 2);
+      case 'bad':
+        return allAthletes.slice(thirdSize * 2);
+      default:
+        return [];
+    }
   } catch (error) {
     console.error('Error fetching ESPN players:', error);
     return [];
