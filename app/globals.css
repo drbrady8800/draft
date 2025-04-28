@@ -2,6 +2,9 @@
 @source inline("bg-good");
 @source inline("bg-mid");
 @source inline("bg-bad");
+@source inline("animate-arc-good");
+@source inline("animate-arc-mid");
+@source inline("animate-arc-bad");
 
 @theme {
   --color-good: var(--color-green-500);
@@ -9,16 +12,78 @@
   --color-bad: var(--color-red-500);
 
   --animate-pulse-grow: pulse-grow 2s ease-in-out infinite;
+  --animate-arc-good: arc-good 2s linear forwards;
+  --animate-arc-mid: arc-mid 2s linear forwards;
+  --animate-arc-bad: arc-bad 2s linear forwards;
 
   @keyframes pulse-grow {
     0%, 100% { transform: scale(1) }
     50% { transform: scale(1.1) }
+  }
+
+  /* Football Animations */
+  @keyframes arc-good {
+    0% {
+      transform: translate(0, 0) rotate(0deg);
+    } 
+    25% {
+      transform: translate(15vw, -25vh) rotate(720deg);
+    }
+    50% {
+      transform: translate(30vw, -30vh) rotate(1440deg);
+    }
+    75% {
+      transform: translate(45vw, -25vh) rotate(2160deg);
+    }
+    100% {
+      transform: translate(60vw, 0) rotate(2880deg);
+    }
+  }
+
+  @keyframes arc-mid {
+    0% {
+      transform: translate(0, 0) rotate(0deg);
+    } 
+    25% {
+      transform: translate(10vw, -25vh) rotate(720deg);
+    }
+    50% {
+      transform: translate(20vw, -30vh) rotate(1440deg);
+    }
+    75% {
+      transform: translate(30vw, -25vh) rotate(2160deg);
+    }
+    100% {
+      transform: translate(40vw, 0) rotate(2880deg);
+    }
+  }
+
+  @keyframes arc-bad {
+    0% {
+      transform: translate(0, 0) rotate(0deg);
+    } 
+    25% {
+      transform: translate(5vw, -25vh) rotate(720deg);
+    }
+    50% {
+      transform: translate(10vw, -30vh) rotate(1440deg);
+    }
+    75% {
+      transform: translate(15vw, -25vh) rotate(2160deg);
+    }
+    100% {
+      transform: translate(20vw, 0) rotate(2880deg);
+    }
   }
 }
 
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-rgb: 255, 255, 255;
+}
+
+.nextjs-toast {
+  display: none;
 }
 
 html,

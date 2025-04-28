@@ -38,12 +38,12 @@ const DraftTickerBox: React.FC<DraftTickerBoxProps> = ({
 
   return (
     <div 
-      className={`h-24 min-w-32 rounded-lg flex flex-col p-2 relative ${
+      className={`h-28 min-w-32 rounded-lg flex flex-col justify-bottom px-2 py-4 relative ${
         isCurrentPick ? 'animate-pulse-grow' : ''
       }`} 
       style={{ backgroundColor: primaryColor }}
     >
-      <div className='text-center text-2xl truncate' style={{ color: secondaryColor }}>
+      <div className='text-center text-2xl/[24px] text-ellipsis' style={{ color: secondaryColor }}>
         {name}
       </div>
       <div className='text-center text-4xl' style={{ color: secondaryColor }}>

@@ -6,6 +6,7 @@ import DraftTicker from '@/components/DraftTicker';
 import DraftPicks from '@/components/DraftPicks';
 import DraftButton from '@/components/DraftButton';
 import FootballField from '@/components/FootballField';
+import FootballAnimation from '@/components/FootballAnimation';
 import { useDraftPicks, api } from '@/hooks/useApi';
 import { DraftablePlayer } from '@/lib/types';
 
@@ -20,7 +21,8 @@ export default function DraftPage({ params }: { params: Promise<{ draftId: numbe
   const [currentPick, setCurrentPick] = useState<number | null>(null);
   const [availablePlayers, setAvailablePlayers] = useState<DraftablePlayer[]>([]);
   const [isDraftButtonDisabled, setIsDraftButtonDisabled] = useState<boolean>(false);
-  
+  const [showDraftOptions, setShowDraftOptions] = useState<boolean>(false);
+  const [hasAnimated, setHasAnimated] = useState<boolean>(false);
   // Use the hooks instead of local state and fetch calls
   const { draftPicks, isLoading, mutate: mutateDraftPicks } = useDraftPicks(draftId.toString());
 
@@ -58,14 +60,22 @@ export default function DraftPage({ params }: { params: Promise<{ draftId: numbe
       setAvailablePlayers(players);
       setUseConfetti(false);
       setIsDraftButtonDisabled(true);
+      setShowDraftOptions(false); // Hide draft options until animation completes
     } catch (error) {
       console.error('Error fetching available players:', error);
     }
   };
 
+  const handleAnimationComplete = () => {
+    setShowDraftOptions(true);
+    setHasAnimated(true);
+  };
+
   const handleClearSelection = () => {
     setIsDraftButtonDisabled(false);
     setAvailablePlayers([]);
+    setShowDraftOptions(false);
+    setHasAnimated(false);
   };
 
   const handlePlayerSelected = async (player: DraftablePlayer) => {
@@ -95,7 +105,14 @@ export default function DraftPage({ params }: { params: Promise<{ draftId: numbe
           <DraftButton onClick={handleDraftClick} disabled={isDraftButtonDisabled}/>
           <DraftTicker currentPick={currentPick} draftPicks={draftPicks || []} loading={isLoading} />
           
-          {currentPick && (
+          {/* Always show the football animation */}
+          <FootballAnimation 
+            availablePlayers={availablePlayers} 
+            onAnimationComplete={handleAnimationComplete} 
+            hasAnimated={hasAnimated}
+          />
+          
+          {currentPick && showDraftOptions && (
             <DraftPicks
               onPlayerSelected={handlePlayerSelected}
               availablePlayers={availablePlayers}
